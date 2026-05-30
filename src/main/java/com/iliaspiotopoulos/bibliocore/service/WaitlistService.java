@@ -179,13 +179,7 @@ public class WaitlistService {
     }
 
     private int calculatePosition(Long bookId, Long entryId) {
-        List<WaitlistEntry> waitingEntries = waitlistRepository.findWaitingEntriesByBookIdOrderByQueuedAt(bookId);
-        for (int i = 0; i < waitingEntries.size(); i++) {
-            if (waitingEntries.get(i).getId().equals(entryId)) {
-                return i + 1;
-            }
-        }
-        return 0;
+        return (int) waitlistRepository.calculatePosition(bookId, entryId);
     }
 
     public record BookAvailableEvent(Long memberId, String memberEmail, Long bookId, String bookTitle) {}

@@ -32,4 +32,12 @@ public interface WaitlistRepository extends JpaRepository<WaitlistEntry, Long> {
 
     @Query("SELECT COUNT(w) FROM WaitlistEntry w WHERE w.book.id = :bookId AND w.status = 'WAITING'")
     int countWaitingByBookId(@Param("bookId") Long bookId);
+
+    @Query("""
+            SELECT COUNT(w) + 1 FROM WaitlistEntry w
+            WHERE w.book.id = :bookId
+              AND w.status = 'WAITING'
+              AND w.queuedAt < (SELECT we.queuedAt FROM WaitlistEntry we WHERE we.id = :entryId)
+            """)
+    long calculatePosition(@Param("bookId") Long bookId, @Param("entryId") Long entryId);
 }

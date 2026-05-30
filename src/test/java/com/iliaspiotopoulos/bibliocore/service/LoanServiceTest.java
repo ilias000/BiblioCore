@@ -116,7 +116,7 @@ class LoanServiceTest {
         @DisplayName("Should successfully borrow a book when all conditions are met")
         void borrowBook_Success() {
             // Given
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
+            when(memberRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testMember));
             when(loanRepository.countActiveLoansByMemberId(1L)).thenReturn(0);
             when(loanRepository.existsByMemberIdAndBookIdAndStatusIn(anyLong(), anyLong(), any()))
                     .thenReturn(false);
@@ -141,7 +141,7 @@ class LoanServiceTest {
         void borrowBook_MemberSuspended_ThrowsException() {
             // Given
             testMember.setMembershipStatus(MembershipStatus.SUSPENDED);
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
+            when(memberRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testMember));
 
             // When & Then
             assertThatThrownBy(() -> loanService.borrowBook(1L, 1L))
@@ -155,7 +155,7 @@ class LoanServiceTest {
         @DisplayName("Should reject borrow when loan limit reached")
         void borrowBook_LoanLimitReached_ThrowsException() {
             // Given
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
+            when(memberRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testMember));
             when(loanRepository.countActiveLoansByMemberId(1L)).thenReturn(3);
 
             // When & Then
@@ -171,7 +171,7 @@ class LoanServiceTest {
         void borrowBook_NoCopiesAvailable_ThrowsException() {
             // Given
             testBook.setAvailableCopies(0);
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
+            when(memberRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testMember));
             when(loanRepository.countActiveLoansByMemberId(1L)).thenReturn(0);
             when(loanRepository.existsByMemberIdAndBookIdAndStatusIn(anyLong(), anyLong(), any()))
                     .thenReturn(false);
@@ -187,7 +187,7 @@ class LoanServiceTest {
         @DisplayName("Should reject borrow when member already has the book")
         void borrowBook_AlreadyBorrowed_ThrowsException() {
             // Given
-            when(memberRepository.findById(1L)).thenReturn(Optional.of(testMember));
+            when(memberRepository.findByIdWithLock(1L)).thenReturn(Optional.of(testMember));
             when(loanRepository.countActiveLoansByMemberId(1L)).thenReturn(1);
             when(loanRepository.existsByMemberIdAndBookIdAndStatusIn(1L, 1L,
                     List.of(LoanStatus.ACTIVE, LoanStatus.OVERDUE))).thenReturn(true);
@@ -202,7 +202,7 @@ class LoanServiceTest {
         @DisplayName("Should throw exception when member not found")
         void borrowBook_MemberNotFound_ThrowsException() {
             // Given
-            when(memberRepository.findById(999L)).thenReturn(Optional.empty());
+            when(memberRepository.findByIdWithLock(999L)).thenReturn(Optional.empty());
 
             // When & Then
             assertThatThrownBy(() -> loanService.borrowBook(999L, 1L))

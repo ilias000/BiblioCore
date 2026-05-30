@@ -62,7 +62,7 @@ public class LoanService {
     public LoanResponse borrowBook(Long memberId, Long bookId) {
         log.info("Member {} attempting to borrow book {}", memberId, bookId);
 
-        Member member = memberRepository.findById(memberId)
+        Member member = memberRepository.findByIdWithLock(memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "id", memberId));
 
         if (member.getMembershipStatus() == MembershipStatus.SUSPENDED) {

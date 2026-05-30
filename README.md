@@ -217,27 +217,39 @@ I built JWT authentication using Spring's OAuth2 Resource Server with self-signe
 
 The `role` claim is extracted by a custom `JwtAuthenticationConverter` to populate Spring Security's granted authorities.
 
-### 5. Optimistic Locking for Concurrent Borrows
+### 5. Concurrency Control for Borrows
 
-The requirement explicitly mentions handling the race condition where two users try to borrow the last copy simultaneously. I solved this with optimistic locking.
+Two distinct race conditions exist in the borrow flow, each requiring a different strategy.
 
-**The problem:**
-1. User A reads book: `availableCopies = 1`
-2. User B reads book: `availableCopies = 1`
-3. User A decrements and saves: `availableCopies = 0`
-4. User B decrements and saves: `availableCopies = -1` ← Invalid state
+**Race condition A — last copy (same book, different members):**
+1. Member A reads book: `availableCopies = 1`
+2. Member B reads book: `availableCopies = 1`
+3. Member A decrements and saves: `availableCopies = 0`
+4. Member B decrements and saves: `availableCopies = -1` ← Invalid state
 
-**My solution:**
-- Book entity has a `@Version` field
+**Solution:** Optimistic locking via `@Version` on `Book`.
 - `BookRepository.findByIdWithLock()` uses `@Lock(LockModeType.OPTIMISTIC)`
-- When User B tries to save, Hibernate detects the version mismatch and throws `ObjectOptimisticLockingFailureException`
-- My exception handler converts this to a 409 Conflict response
-- The client can retry (User B will now see `availableCopies = 0` and get a business error)
+- On Member B's save, Hibernate detects the version mismatch and throws `ObjectOptimisticLockingFailureException`
+- The exception handler converts this to a 409 Conflict; the client retries and now sees `availableCopies = 0`
 
-**Why optimistic over pessimistic?**
-- Most borrow operations don't conflict - pessimistic locking would add unnecessary contention
-- Pessimistic locks can cause deadlocks in complex transactions
+**Why optimistic over pessimistic for this case?**
+- Most borrow operations don't conflict — pessimistic locking would serialize all borrows for all books unnecessarily
 - Optimistic locking scales better for read-heavy workloads
+
+**Race condition B — loan limit (same member, different books):**
+1. Member reads active loan count: `count = 2`, limit = 3 → passes
+2. Concurrent request reads active loan count: `count = 2`, limit = 3 → passes
+3. Both create loans → member ends up with 4 active loans
+
+**Solution:** Pessimistic write lock on the member row at the start of `borrowBook`.
+- `MemberRepository.findByIdWithLock()` uses `@Lock(LockModeType.PESSIMISTIC_WRITE)`
+- This issues `SELECT ... FOR UPDATE` on the member row
+- Concurrent borrow requests for the same member serialize at the DB level
+- The second request acquires the lock only after the first has committed, re-reads the actual loan count, and correctly enforces the limit
+
+**Why pessimistic here?**
+- We are serializing per-member, not globally — contention is scoped to a single member's concurrent sessions
+- The window between reading the loan count and creating the loan must be protected; optimistic locking on `Member` would not help because the loan count is derived from the `Loan` table, not from a field on `Member` itself
 
 ### 6. BigDecimal for All Monetary Values
 
