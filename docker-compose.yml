@@ -1,0 +1,50 @@
+# ====================================================================
+# Local containerised stack: PostgreSQL + the application.
+# The app starts only after Postgres reports healthy.
+#   docker compose up --build
+# ====================================================================
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: bibliocore-postgres
+    environment:
+      POSTGRES_DB: biblioCoreDB
+      POSTGRES_USER: biblioCore
+      POSTGRES_PASSWORD: biblioCore
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U biblioCore -d biblioCoreDB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bibliocore-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker-pg
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/biblioCoreDB
+      SPRING_DATASOURCE_USERNAME: biblioCore
+      SPRING_DATASOURCE_PASSWORD: biblioCore
+      # Override in real environments (e.g. via an .env file or secrets).
+      APP_SECURITY_JWT_SECRET: docker-compose-demo-secret-change-me-0123456789abcdef
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  pgdata:

@@ -1,0 +1,1504 @@
+{
+	"info": {
+		"_postman_id": "bibliocore-api-collection",
+		"name": "BiblioCore API",
+		"description": "Library Management System API - Complete endpoint collection for testing all functionality.\n\n## Quick Start\n1. Import this collection and the environment file\n2. Run \"Register Member\" or \"Login\" to get a JWT token\n3. The token is automatically saved to the environment\n4. All authenticated requests use the token automatically\n\n## User Types\n- **Member**: Regular library user who can borrow books\n- **Admin (Librarian)**: Can manage books, members, and view all loans\n\n## Test Accounts\nAfter starting the app, register a new member or use seeded data if available.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"description": "User registration and login endpoints",
+			"item": [
+				{
+					"name": "Register Member",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('accessToken', response.accessToken);",
+									"    pm.environment.set('currentUserEmail', response.email);",
+									"    pm.environment.set('currentUserId', response.userId);",
+									"    pm.test('Registration successful', function() {",
+									"        pm.expect(response.accessToken).to.be.a('string');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"SecurePass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "register"]
+						},
+						"description": "Register a new library member account. Returns a JWT token on success."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"originalRequest": {
+								"method": "POST",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"SecurePass123!\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/auth/register",
+									"host": ["{{baseUrl}}"],
+									"path": ["api", "v1", "auth", "register"]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"tokenType\": \"Bearer\",\n    \"expiresIn\": 3600,\n    \"userId\": 1,\n    \"email\": \"john.doe@example.com\",\n    \"role\": \"MEMBER\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('accessToken', response.accessToken);",
+									"    pm.environment.set('currentUserEmail', response.email);",
+									"    pm.environment.set('currentUserId', response.userId);",
+									"    pm.test('Login successful', function() {",
+									"        pm.expect(response.accessToken).to.be.a('string');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"john.doe@example.com\",\n    \"password\": \"SecurePass123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Authenticate with email and password. Returns a JWT token."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"tokenType\": \"Bearer\",\n    \"expiresIn\": 3600,\n    \"userId\": 1,\n    \"email\": \"john.doe@example.com\",\n    \"role\": \"MEMBER\"\n}"
+						},
+						{
+							"name": "Invalid Credentials",
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"type\": \"about:blank\",\n    \"title\": \"Unauthorized\",\n    \"status\": 401,\n    \"detail\": \"Invalid email or password\",\n    \"instance\": \"/api/v1/auth/login\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Login as Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('adminToken', response.accessToken);",
+									"    pm.test('Admin login successful', function() {",
+									"        pm.expect(response.role).to.equal('ADMIN');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@bibliocore.com\",\n    \"password\": \"Admin123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						},
+						"description": "Login as a librarian (admin) to access admin endpoints. Saves token to adminToken variable."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Books - Public",
+			"description": "Public endpoints for browsing the book catalog",
+			"item": [
+				{
+					"name": "Search Books",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books?page=0&size=20&sort=title,asc",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Page number (0-indexed)"
+								},
+								{
+									"key": "size",
+									"value": "20",
+									"description": "Page size"
+								},
+								{
+									"key": "sort",
+									"value": "title,asc",
+									"description": "Sort field and direction (title,asc or publicationDate,desc)"
+								},
+								{
+									"key": "title",
+									"value": "Java",
+									"description": "Filter by title (partial match)",
+									"disabled": true
+								},
+								{
+									"key": "author",
+									"value": "Martin",
+									"description": "Filter by author name (partial match)",
+									"disabled": true
+								},
+								{
+									"key": "genre",
+									"value": "Programming",
+									"description": "Filter by genre (exact match)",
+									"disabled": true
+								},
+								{
+									"key": "available",
+									"value": "true",
+									"description": "Filter by availability (true/false)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Search and filter books with pagination. No authentication required."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"content\": [\n        {\n            \"id\": 1,\n            \"isbn\": \"978-0134685991\",\n            \"title\": \"Effective Java\",\n            \"authors\": [\"Joshua Bloch\"],\n            \"genre\": \"Programming\",\n            \"publicationDate\": \"2018-01-06\",\n            \"totalCopies\": 5,\n            \"availableCopies\": 3\n        }\n    ],\n    \"pageable\": {\n        \"pageNumber\": 0,\n        \"pageSize\": 20\n    },\n    \"totalElements\": 1,\n    \"totalPages\": 1\n}"
+						}
+					]
+				},
+				{
+					"name": "Search Books - Filter by Title",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books?title=Java",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books"],
+							"query": [
+								{
+									"key": "title",
+									"value": "Java"
+								}
+							]
+						},
+						"description": "Search books by title (partial match)"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Books - Available Only",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books?available=true",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books"],
+							"query": [
+								{
+									"key": "available",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Search only books that have available copies"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Books - By Genre",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books?genre=Fiction",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books"],
+							"query": [
+								{
+									"key": "genre",
+									"value": "Fiction"
+								}
+							]
+						},
+						"description": "Search books by genre (exact match)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Book by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('bookId', response.id);",
+									"    pm.environment.set('bookIsbn', response.isbn);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books", "1"]
+						},
+						"description": "Retrieve a single book by its ID. No authentication required."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"id\": 1,\n    \"isbn\": \"978-0134685991\",\n    \"title\": \"Effective Java\",\n    \"authors\": [\"Joshua Bloch\"],\n    \"genre\": \"Programming\",\n    \"publicationDate\": \"2018-01-06\",\n    \"totalCopies\": 5,\n    \"availableCopies\": 3\n}"
+						},
+						{
+							"name": "Not Found",
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"type\": \"about:blank\",\n    \"title\": \"Not Found\",\n    \"status\": 404,\n    \"detail\": \"Book not found with id: 999\",\n    \"instance\": \"/api/v1/books/999\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Book by ISBN",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books/isbn/978-0134685991",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books", "isbn", "978-0134685991"]
+						},
+						"description": "Retrieve a single book by its ISBN. No authentication required."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Books - Admin",
+			"description": "Admin-only endpoints for managing books",
+			"item": [
+				{
+					"name": "Create Book",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('createdBookId', response.id);",
+									"    pm.test('Book created', function() {",
+									"        pm.expect(response.id).to.be.a('number');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"isbn\": \"978-0134685991\",\n    \"title\": \"Effective Java\",\n    \"authors\": [\"Joshua Bloch\"],\n    \"genre\": \"Programming\",\n    \"publicationDate\": \"2018-01-06\",\n    \"totalCopies\": 5\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books"]
+						},
+						"description": "Add a new book to the catalog. Requires ADMIN role."
+					},
+					"response": [
+						{
+							"name": "Created",
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"id\": 1,\n    \"isbn\": \"978-0134685991\",\n    \"title\": \"Effective Java\",\n    \"authors\": [\"Joshua Bloch\"],\n    \"genre\": \"Programming\",\n    \"publicationDate\": \"2018-01-06\",\n    \"totalCopies\": 5,\n    \"availableCopies\": 5\n}"
+						},
+						{
+							"name": "Duplicate ISBN",
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"type\": \"about:blank\",\n    \"title\": \"Conflict\",\n    \"status\": 409,\n    \"detail\": \"Book with ISBN 978-0134685991 already exists\",\n    \"instance\": \"/api/v1/books\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Create Book - Clean Code",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"isbn\": \"978-0132350884\",\n    \"title\": \"Clean Code: A Handbook of Agile Software Craftsmanship\",\n    \"authors\": [\"Robert C. Martin\"],\n    \"genre\": \"Programming\",\n    \"publicationDate\": \"2008-08-01\",\n    \"totalCopies\": 3\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books"]
+						},
+						"description": "Sample: Create Clean Code book"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Book - Design Patterns",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"isbn\": \"978-0201633610\",\n    \"title\": \"Design Patterns: Elements of Reusable Object-Oriented Software\",\n    \"authors\": [\"Erich Gamma\", \"Richard Helm\", \"Ralph Johnson\", \"John Vlissides\"],\n    \"genre\": \"Programming\",\n    \"publicationDate\": \"1994-10-31\",\n    \"totalCopies\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books"]
+						},
+						"description": "Sample: Create Design Patterns (Gang of Four) book"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Book - Fiction Example",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"isbn\": \"978-0061120084\",\n    \"title\": \"To Kill a Mockingbird\",\n    \"authors\": [\"Harper Lee\"],\n    \"genre\": \"Fiction\",\n    \"publicationDate\": \"1960-07-11\",\n    \"totalCopies\": 4\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books"]
+						},
+						"description": "Sample: Create a fiction book"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Book",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Effective Java (3rd Edition)\",\n    \"totalCopies\": 10\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books/{{createdBookId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books", "{{createdBookId}}"]
+						},
+						"description": "Update an existing book. Only provided fields are updated. Requires ADMIN role."
+					},
+					"response": [
+						{
+							"name": "Updated",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"id\": 1,\n    \"isbn\": \"978-0134685991\",\n    \"title\": \"Effective Java (3rd Edition)\",\n    \"authors\": [\"Joshua Bloch\"],\n    \"genre\": \"Programming\",\n    \"publicationDate\": \"2018-01-06\",\n    \"totalCopies\": 10,\n    \"availableCopies\": 10\n}"
+						}
+					]
+				},
+				{
+					"name": "Delete Book (Soft Delete)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/books/{{createdBookId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "books", "{{createdBookId}}"]
+						},
+						"description": "Soft-delete a book. Fails if the book has active loans. Requires ADMIN role."
+					},
+					"response": [
+						{
+							"name": "Deleted",
+							"status": "No Content",
+							"code": 204,
+							"_postman_previewlanguage": "text",
+							"body": ""
+						},
+						{
+							"name": "Has Active Loans",
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"type\": \"about:blank\",\n    \"title\": \"Conflict\",\n    \"status\": 409,\n    \"detail\": \"Cannot delete book with active loans\",\n    \"instance\": \"/api/v1/books/1\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Members",
+			"description": "Member profile endpoints",
+			"item": [
+				{
+					"name": "Get My Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/members/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "members", "me"]
+						},
+						"description": "Get the authenticated member's profile information."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"id\": 1,\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"membershipStatus\": \"ACTIVE\",\n    \"loanLimit\": 3,\n    \"activeLoansCount\": 1,\n    \"createdAt\": \"2024-01-15T10:30:00Z\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Loans",
+			"description": "Loan management for members",
+			"item": [
+				{
+					"name": "Borrow Book",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('loanId', response.id);",
+									"    pm.test('Book borrowed', function() {",
+									"        pm.expect(response.status).to.equal('ACTIVE');",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bookId\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/loans/borrow",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "loans", "borrow"]
+						},
+						"description": "Borrow a book. Requires member authentication. Enforces loan limit and member status."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"id\": 1,\n    \"bookId\": 1,\n    \"bookTitle\": \"Effective Java\",\n    \"bookIsbn\": \"978-0134685991\",\n    \"memberId\": 1,\n    \"memberName\": \"John Doe\",\n    \"borrowDate\": \"2024-01-15\",\n    \"dueDate\": \"2024-01-29\",\n    \"returnDate\": null,\n    \"status\": \"ACTIVE\",\n    \"fine\": null\n}"
+						},
+						{
+							"name": "No Copies Available",
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"type\": \"about:blank\",\n    \"title\": \"Conflict\",\n    \"status\": 409,\n    \"detail\": \"No copies available for this book\",\n    \"instance\": \"/api/v1/loans/borrow\"\n}"
+						},
+						{
+							"name": "Loan Limit Reached",
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"type\": \"about:blank\",\n    \"title\": \"Conflict\",\n    \"status\": 409,\n    \"detail\": \"Member has reached their loan limit of 3\",\n    \"instance\": \"/api/v1/loans/borrow\"\n}"
+						},
+						{
+							"name": "Member Suspended",
+							"status": "Forbidden",
+							"code": 403,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"type\": \"about:blank\",\n    \"title\": \"Forbidden\",\n    \"status\": 403,\n    \"detail\": \"Suspended members cannot borrow books\",\n    \"instance\": \"/api/v1/loans/borrow\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Return Book",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/loans/{{loanId}}/return",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "loans", "{{loanId}}", "return"]
+						},
+						"description": "Return a borrowed book. Calculates and reports any overdue fine."
+					},
+					"response": [
+						{
+							"name": "Returned (No Fine)",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"loan\": {\n        \"id\": 1,\n        \"bookId\": 1,\n        \"bookTitle\": \"Effective Java\",\n        \"bookIsbn\": \"978-0134685991\",\n        \"memberId\": 1,\n        \"memberName\": \"John Doe\",\n        \"borrowDate\": \"2024-01-15\",\n        \"dueDate\": \"2024-01-29\",\n        \"returnDate\": \"2024-01-20\",\n        \"status\": \"RETURNED\",\n        \"fine\": null\n    },\n    \"daysOverdue\": 0,\n    \"fineAmount\": 0.00,\n    \"message\": \"Book returned successfully\"\n}"
+						},
+						{
+							"name": "Returned (With Fine)",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"loan\": {\n        \"id\": 1,\n        \"bookId\": 1,\n        \"bookTitle\": \"Effective Java\",\n        \"bookIsbn\": \"978-0134685991\",\n        \"memberId\": 1,\n        \"memberName\": \"John Doe\",\n        \"borrowDate\": \"2024-01-15\",\n        \"dueDate\": \"2024-01-29\",\n        \"returnDate\": \"2024-02-05\",\n        \"status\": \"RETURNED\",\n        \"fine\": 1.40\n    },\n    \"daysOverdue\": 7,\n    \"fineAmount\": 1.40,\n    \"message\": \"Book returned. Overdue fine: €1.40 (7 days at €0.20/day)\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get My Loans",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/loans/my-loans?page=0&size=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "loans", "my-loans"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get the authenticated member's loan history (all loans)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Active Loans",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/loans/my-loans/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "loans", "my-loans", "active"]
+						},
+						"description": "Get only the member's currently active loans."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Loan by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/loans/{{loanId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "loans", "{{loanId}}"]
+						},
+						"description": "Get details of a specific loan. Members can only view their own loans."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Waitlist",
+			"description": "Book reservation waitlist for members",
+			"item": [
+				{
+					"name": "Join Waitlist",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('waitlistEntryId', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/waitlist/books/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "waitlist", "books", "1"]
+						},
+						"description": "Join the waitlist for an unavailable book. You'll be notified when a copy becomes available."
+					},
+					"response": [
+						{
+							"name": "Joined",
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"id\": 1,\n    \"memberId\": 1,\n    \"memberName\": \"John Doe\",\n    \"bookId\": 1,\n    \"bookTitle\": \"Effective Java\",\n    \"position\": 1,\n    \"status\": \"WAITING\",\n    \"createdAt\": \"2024-01-15T10:30:00Z\"\n}"
+						},
+						{
+							"name": "Book Available",
+							"status": "Conflict",
+							"code": 409,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"type\": \"about:blank\",\n    \"title\": \"Conflict\",\n    \"status\": 409,\n    \"detail\": \"Book has available copies - borrow instead of joining waitlist\",\n    \"instance\": \"/api/v1/waitlist/books/1\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Cancel Waitlist Entry",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/waitlist/books/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "waitlist", "books", "1"]
+						},
+						"description": "Remove yourself from a book's waitlist."
+					},
+					"response": [
+						{
+							"name": "Cancelled",
+							"status": "No Content",
+							"code": 204,
+							"_postman_previewlanguage": "text",
+							"body": ""
+						}
+					]
+				},
+				{
+					"name": "Get My Waitlist Entries",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/waitlist/my-waitlist",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "waitlist", "my-waitlist"]
+						},
+						"description": "Get all your current waitlist entries."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin - Members",
+			"description": "Admin endpoints for managing members",
+			"item": [
+				{
+					"name": "List All Members",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/members?page=0&size=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "members"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								},
+								{
+									"key": "status",
+									"value": "ACTIVE",
+									"description": "Filter by status: ACTIVE, SUSPENDED, EXPIRED",
+									"disabled": true
+								}
+							]
+						},
+						"description": "List all members with optional status filter. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "List Active Members",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/members?status=ACTIVE",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "members"],
+							"query": [
+								{
+									"key": "status",
+									"value": "ACTIVE"
+								}
+							]
+						},
+						"description": "List only active members."
+					},
+					"response": []
+				},
+				{
+					"name": "List Suspended Members",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/members?status=SUSPENDED",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "members"],
+							"query": [
+								{
+									"key": "status",
+									"value": "SUSPENDED"
+								}
+							]
+						},
+						"description": "List only suspended members."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Member by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/members/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "members", "1"]
+						},
+						"description": "Get detailed information about a specific member."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Member",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Smith\",\n    \"loanLimit\": 5\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/members/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "members", "1"]
+						},
+						"description": "Update a member's details. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Suspend Member",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/members/1/suspend",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "members", "1", "suspend"]
+						},
+						"description": "Suspend a member's account. Suspended members cannot borrow books."
+					},
+					"response": [
+						{
+							"name": "Suspended",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"id\": 1,\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"membershipStatus\": \"SUSPENDED\",\n    \"loanLimit\": 3,\n    \"activeLoansCount\": 0\n}"
+						}
+					]
+				},
+				{
+					"name": "Activate Member",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/members/1/activate",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "members", "1", "activate"]
+						},
+						"description": "Activate a suspended or expired member's account."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin - Loans",
+			"description": "Admin endpoints for managing loans",
+			"item": [
+				{
+					"name": "List All Loans",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/loans?page=0&size=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "loans"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								}
+							]
+						},
+						"description": "List all loans in the system. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "List Overdue Loans",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/loans/overdue",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "loans", "overdue"]
+						},
+						"description": "List all overdue loans. Useful for tracking late returns."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Member's Loans",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/loans/member/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "loans", "member", "1"]
+						},
+						"description": "Get all loans for a specific member. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Run Overdue Detection",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/loans/detect-overdue",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "loans", "detect-overdue"]
+						},
+						"description": "Manually trigger the overdue detection job. Normally runs on schedule, but can be triggered manually."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"message\": \"Overdue detection completed\",\n    \"loansMarkedOverdue\": 3\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Admin - Waitlist",
+			"description": "Admin endpoints for managing waitlists",
+			"item": [
+				{
+					"name": "Get Book Waitlist",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/waitlist/book/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "waitlist", "book", "1"]
+						},
+						"description": "Get the waitlist for a specific book. Requires ADMIN role."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin - Audit",
+			"description": "Admin endpoints for viewing audit logs",
+			"item": [
+				{
+					"name": "Get Loan Audit Log",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/audit/LOAN/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "audit", "LOAN", "1"]
+						},
+						"description": "Get audit log entries for a specific loan. Shows all state changes."
+					},
+					"response": [
+						{
+							"name": "Success",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"content\": [\n        {\n            \"id\": 1,\n            \"entityType\": \"LOAN\",\n            \"entityId\": 1,\n            \"action\": \"STATUS_CHANGE\",\n            \"previousValue\": \"ACTIVE\",\n            \"newValue\": \"RETURNED\",\n            \"performedBy\": \"john.doe@example.com\",\n            \"performedAt\": \"2024-01-20T14:30:00Z\"\n        },\n        {\n            \"id\": 2,\n            \"entityType\": \"LOAN\",\n            \"entityId\": 1,\n            \"action\": \"CREATED\",\n            \"previousValue\": null,\n            \"newValue\": \"ACTIVE\",\n            \"performedBy\": \"john.doe@example.com\",\n            \"performedAt\": \"2024-01-15T10:30:00Z\"\n        }\n    ],\n    \"totalElements\": 2\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Member Audit Log",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/audit/MEMBER/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "audit", "MEMBER", "1"]
+						},
+						"description": "Get audit log entries for a specific member. Shows status changes and updates."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health & Info",
+			"description": "Application health and information endpoints",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/actuator/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["actuator", "health"]
+						},
+						"description": "Application health check endpoint."
+					},
+					"response": [
+						{
+							"name": "Healthy",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"body": "{\n    \"status\": \"UP\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Application Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/actuator/info",
+							"host": ["{{baseUrl}}"],
+							"path": ["actuator", "info"]
+						},
+						"description": "Application information endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "OpenAPI Spec",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v3/api-docs",
+							"host": ["{{baseUrl}}"],
+							"path": ["v3", "api-docs"]
+						},
+						"description": "Get the OpenAPI 3.0 specification in JSON format."
+					},
+					"response": []
+				},
+				{
+					"name": "Swagger UI",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/swagger-ui.html",
+							"host": ["{{baseUrl}}"],
+							"path": ["swagger-ui.html"]
+						},
+						"description": "Open the Swagger UI in a browser to explore the API interactively."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script",
+					"// Adds common headers if needed"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"// Log response time for all requests",
+					"if (pm.response) {",
+					"    console.log('Response time: ' + pm.response.responseTime + 'ms');",
+					"}"
+				]
+			}
+		}
+	]
+}

@@ -1,0 +1,21 @@
+
+${AnsiColor.YELLOW}        ____  _ __    ___      ${AnsiColor.CYAN} ______              ${AnsiColor.DEFAULT}
+${AnsiColor.YELLOW}       / __ )(_) /_  / (_)___ ${AnsiColor.CYAN}/ ____/___  ________ ${AnsiColor.DEFAULT}
+${AnsiColor.YELLOW}      / __  / / __ \/ / / __ \ ${AnsiColor.CYAN} /   / __ \/ ___/ _ \ ${AnsiColor.DEFAULT}
+${AnsiColor.YELLOW}     / /_/ / / /_/ / / / /_/ ${AnsiColor.CYAN}/ /___/ /_/ / /  /  __/${AnsiColor.DEFAULT}
+${AnsiColor.YELLOW}    /_____/_/_.___/_/_/\____/${AnsiColor.CYAN}\____/\____/_/   \___/${AnsiColor.DEFAULT}
+
+${AnsiColor.WHITE}        ___________________ ${AnsiColor.DEFAULT}
+${AnsiColor.WHITE}       /                  /| ${AnsiColor.DEFAULT}
+${AnsiColor.WHITE}      /  B I B L I O     / | ${AnsiColor.DEFAULT}
+${AnsiColor.WHITE}     /     C O R E      /  | ${AnsiColor.DEFAULT}
+${AnsiColor.WHITE}    /__________________/   | ${AnsiColor.DEFAULT}
+${AnsiColor.WHITE}    |   ___________    |   | ${AnsiColor.DEFAULT}
+${AnsiColor.WHITE}    |  /           \   |   | ${AnsiColor.DEFAULT}
+${AnsiColor.WHITE}    | |  Library   |   |   /  ${AnsiColor.DEFAULT}
+${AnsiColor.WHITE}    | |    API     |   |  /   ${AnsiColor.DEFAULT}
+${AnsiColor.WHITE}    |  \___________/   | /    ${AnsiColor.DEFAULT}
+${AnsiColor.WHITE}    |__________________|/     ${AnsiColor.DEFAULT}
+
+  ${AnsiColor.GREEN}Spring Boot ${spring-boot.version}${AnsiColor.DEFAULT} | ${AnsiColor.CYAN}Java ${java.version}${AnsiColor.DEFAULT}
+  ${AnsiColor.MAGENTA}Profile: ${spring.profiles.active:default}${AnsiColor.DEFAULT}
