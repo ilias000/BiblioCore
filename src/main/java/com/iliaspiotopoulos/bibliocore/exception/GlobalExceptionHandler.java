@@ -2,6 +2,7 @@ package com.iliaspiotopoulos.bibliocore.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -112,6 +113,17 @@ public class GlobalExceptionHandler {
         problem.setType(URI.create("https://api.bibliocore.com/errors/validation"));
         problem.setProperty("timestamp", Instant.now());
         problem.setProperty("errors", errors);
+        return problem;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+                "A resource with the provided details already exists");
+        problem.setTitle("Resource Already Exists");
+        problem.setType(URI.create("https://api.bibliocore.com/errors/duplicate"));
+        problem.setProperty("timestamp", Instant.now());
         return problem;
     }
 
