@@ -340,6 +340,25 @@ When a member rejoins, they go to the **end of the queue** rather than retaining
 
 ---
 
+## CI/CD Pipeline
+
+The project includes a GitHub Actions workflow (`.github/workflows/ci.yml`):
+
+| Job | Trigger | Description |
+|-----|---------|-------------|
+| `build` | Push/PR to master, main, develop | Compiles, runs tests, uploads test results and coverage |
+| `docker-build` | Push to master only | Builds Docker image after successful build |
+
+**Pipeline steps:**
+1. Checkout code
+2. Set up JDK 25 (Temurin)
+3. Run `./mvnw clean verify` with test profile
+4. Upload test results (Surefire + Failsafe reports)
+5. Upload JaCoCo coverage report
+6. Build Docker image (master branch only)
+
+---
+
 ## Testing
 
 ```bash
